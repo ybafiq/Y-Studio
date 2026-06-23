@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y Studio — Chat & Vision AI</title>
+    <title>Y Studio — Advanced Chat & Vision Workspace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --bg-color: #131314;
-            --panel-bg: #1e1f20;
-            --input-bg: #1e1f20;
-            --text-main: #e3e3e3;
-            --text-sub: #b4b4b4;
-            --gemini-blue: #4285f4;
-            --gemini-purple: #9b51e0;
-            --gemini-gradient: linear-gradient(90deg, #4285f4, #9b51e0, #ea4335);
-            --border-color: #333537;
-            --user-msg-bg: #2b2a2a;
+            --bg-color: #0f1011;
+            --panel-bg: #161719;
+            --input-bg: #1e2022;
+            --text-main: #f0f1f3;
+            --text-sub: #9ea4ac;
+            --y-accent: #00e5ff;
+            --y-gradient: linear-gradient(135deg, #00e5ff, #7b1fa2);
+            --border-color: #282a2d;
+            --user-msg-bg: #2a2c30;
         }
 
         * {
@@ -53,9 +53,10 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 20px;
-            font-weight: 500;
-            background: var(--gemini-gradient);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: var(--y-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -67,9 +68,11 @@
         }
 
         .setting-group label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-sub);
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .setting-group select, 
@@ -86,7 +89,7 @@
 
         .setting-group select:focus, 
         .setting-group input:focus {
-            border-color: var(--gemini-blue);
+            border-color: var(--y-accent);
         }
 
         .dimensions-row {
@@ -95,7 +98,7 @@
             gap: 12px;
         }
 
-        /* --- Main Chat Interface --- */
+        /* --- Main Content Space --- */
         .main-content {
             flex: 1;
             display: flex;
@@ -104,7 +107,6 @@
             position: relative;
         }
 
-        /* --- Dynamic Chat Feed Container --- */
         .chat-feed {
             flex: 1;
             overflow-y: auto;
@@ -124,7 +126,7 @@
             gap: 32px;
         }
 
-        /* --- Welcome Hero Block --- */
+        /* --- Workspace Welcome Hero --- */
         .welcome-hero {
             text-align: left;
             margin-top: 10vh;
@@ -135,33 +137,49 @@
 
         .welcome-hero h1 {
             font-size: 44px;
-            font-weight: 500;
-            background: linear-gradient(135deg, #4285f4 0%, #9b51e0 30%, #ea4335 70%);
+            font-weight: 700;
+            background: var(--y-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .welcome-hero p {
             color: var(--text-sub);
-            font-size: 18px;
-            max-width: 500px;
+            font-size: 16px;
+            max-width: 520px;
             line-height: 1.6;
         }
 
-        /* --- Messages Styling --- */
+        .command-tag-list {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cmd-tag {
+            background: #212327;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--y-accent);
+            cursor: pointer;
+        }
+
+        /* --- Message Rendering Layouts --- */
         .message {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            animation: fadeIn 0.3s ease-out forwards;
+            animation: fadeIn 0.25s ease-out forwards;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* User Message (Right Side Aligned Bubble) */
         .message.user {
             align-items: flex-end;
         }
@@ -171,13 +189,12 @@
             color: var(--text-main);
             padding: 14px 20px;
             border-radius: 20px 20px 4px 20px;
-            max-width: 70%;
-            font-size: 16px;
+            max-width: 75%;
+            font-size: 15px;
             line-height: 1.5;
             word-break: break-word;
         }
 
-        /* Model Message (Left Side Spark Native Layout) */
         .message.model {
             align-items: flex-start;
             padding-left: 36px;
@@ -188,20 +205,56 @@
             position: absolute;
             left: 0;
             top: 2px;
-            color: var(--gemini-purple);
+            color: var(--y-accent);
         }
 
+        /* --- Rich text elements (Markdown Output) --- */
         .message.model .text-content {
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
             color: var(--text-main);
-            margin-bottom: 12px;
-            white-space: pre-wrap;
+            margin-bottom: 8px;
+            width: 100%;
         }
 
-        /* Embedded Dynamic Image Card */
+        .message.model .text-content p {
+            margin-bottom: 12px;
+        }
+
+        .message.model .text-content h1, 
+        .message.model .text-content h2, 
+        .message.model .text-content h3 {
+            margin: 18px 0 8px 0;
+            color: #fff;
+        }
+
+        /* Markdown Table Styling fixes */
+        .message.model .text-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .message.model .text-content th, 
+        .message.model .text-content td {
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .message.model .text-content th {
+            background-color: #1e2022;
+            color: var(--y-accent);
+            font-weight: 500;
+        }
+
+        /* --- Image Card Presentation --- */
         .media-card {
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-color);
             background-color: #0b0c0d;
@@ -218,21 +271,20 @@
             object-fit: contain;
         }
 
-        /* Embedded Action Row */
         .card-actions {
             display: flex;
             gap: 8px;
-            padding: 12px;
+            padding: 10px 12px;
             border-top: 1px solid var(--border-color);
-            background: #18191a;
+            background: #121315;
         }
 
         .btn {
             background-color: var(--panel-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 16px;
+            padding: 8px 14px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
@@ -240,38 +292,38 @@
             align-items: center;
             gap: 6px;
             text-decoration: none;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .btn:hover {
-            background-color: #2a2b2d;
+            background-color: var(--input-bg);
+            border-color: var(--y-accent);
         }
 
-        /* --- Conversational Shimmer Card --- */
+        /* --- Loading Shimmers --- */
         .shimmer-placeholder {
             width: 350px;
             height: 350px;
-            border-radius: 16px;
-            background: linear-gradient(90deg, #1e1f20 25%, #2a2b2d 50%, #1e1f20 75%);
+            border-radius: 12px;
+            background: linear-gradient(90deg, #161719 25%, #222428 50%, #161719 75%);
             background-size: 200% 100%;
             animation: move-shimmer 1.5s infinite linear;
             border: 1px solid var(--border-color);
             margin-top: 12px;
         }
 
-        /* Text Streaming Shimmer Bars */
         .text-shimmer-container {
             display: flex;
             flex-direction: column;
             gap: 8px;
             width: 100%;
-            min-width: 300px;
+            min-width: 320px;
             margin-top: 8px;
         }
         .text-shimmer-bar {
             height: 14px;
             border-radius: 4px;
-            background: linear-gradient(90deg, #1e1f20 25%, #2a2b2d 50%, #1e1f20 75%);
+            background: linear-gradient(90deg, #161719 25%, #222428 50%, #161719 75%);
             background-size: 200% 100%;
             animation: move-shimmer 1.5s infinite linear;
         }
@@ -281,7 +333,7 @@
             100% { background-position: -200% 0; }
         }
 
-        /* --- Gemini Modern Input Dock --- */
+        /* --- Input dock --- */
         .input-area-wrapper {
             padding: 0 24px 32px 24px;
             display: flex;
@@ -293,17 +345,17 @@
             width: 100%;
             max-width: 820px;
             background-color: var(--input-bg);
-            border-radius: 32px;
+            border-radius: 24px;
             padding: 8px 8px 8px 24px;
             display: flex;
             align-items: center;
-            border: 1px solid transparent;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             transition: border-color 0.3s;
         }
 
         .prompt-box:focus-within {
-            border-color: #444;
+            border-color: var(--y-accent);
         }
 
         .prompt-input {
@@ -312,34 +364,34 @@
             border: none;
             outline: none;
             color: var(--text-main);
-            font-size: 16px;
+            font-size: 15px;
             padding: 12px 0;
             height: 44px;
             font-family: inherit;
         }
 
         .submit-btn {
-            background: var(--gemini-gradient);
+            background: var(--y-gradient);
             border: none;
             width: 44px;
             height: 44px;
-            border-radius: 50%;
+            border-radius: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            transition: transform 0.1s, background 0.2s;
+            transition: transform 0.1s;
             flex-shrink: 0;
         }
 
         .submit-btn:hover {
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
 
         .submit-btn:disabled {
-            background: #3c4043;
-            color: #80868b;
+            background: #25272a;
+            color: #5f6368;
             cursor: not-allowed;
             transform: none;
         }
@@ -347,15 +399,15 @@
 </head>
 <body>
 
+    <!-- Controls Panel -->
     <aside class="sidebar">
         <div class="logo-container">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L14.76 8.76L21.52 11.52L14.76 14.28L12 21.04L9.24 14.28L2.48 11.52L9.24 8.76L12 2Z" fill="url(#spark-grad)"/>
+                <path d="M12 2L14.76 8.76L21.52 11.52L14.76 14.28L12 21.04L9.24 14.28L2.48 11.52L9.24 8.76L12 2Z" fill="url(#y-studio-grad)"/>
                 <defs>
-                    <linearGradient id="spark-grad" x1="2" y1="2" x2="21.52" y2="21.04" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#4285f4"/>
-                        <stop offset="0.5" stop-color="#9b51e0"/>
-                        <stop offset="1" stop-color="#ea4335"/>
+                    <linearGradient id="y-studio-grad" x1="2" y1="2" x2="21.52" y2="21.04" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#00e5ff"/>
+                        <stop offset="1" stop-color="#7b1fa2"/>
                     </linearGradient>
                 </defs>
             </svg>
@@ -363,7 +415,7 @@
         </div>
 
         <div class="setting-group">
-            <label for="chat-model">Text Chat Model</label>
+            <label for="chat-model">Text Model</label>
             <select id="chat-model">
                 <option value="openai" selected>GPT-4o (Smart & Fluid)</option>
                 <option value="mistral">Mistral Large</option>
@@ -390,16 +442,25 @@
             <label for="seed">Image Seed</label>
             <input type="number" id="seed" placeholder="Random generation">
         </div>
+        
+        <button class="btn" style="margin-top:auto; justify-content:center;" onclick="clearWorkspace()">
+            Reset Workspace
+        </button>
     </aside>
 
+    <!-- Canvas Frame -->
     <main class="main-content">
-        
         <div class="chat-feed" id="chat-feed">
             <div class="chat-feed-inner" id="chat-feed-inner">
                 
                 <div class="welcome-hero" id="welcome-hero">
-                    <h1>Hello, I'm Y Studio</h1>
-                    <p>I can chat, answer complex questions, write code, or dynamically build high-fidelity graphics. Try saying: <i>"Write a short poem"</i> or <i>"Draw a futuristic city cyberpunk style"</i>.</p>
+                    <h1>Welcome to Y Studio</h1>
+                    <p>An advanced local workspace for direct conversational text-processing and automated model rendering pipelines.</p>
+                    <div class="command-tag-list">
+                        <div class="cmd-tag" onclick="useCommand('/image ')">/image [prompt]</div>
+                        <div class="cmd-tag" onclick="useCommand('/chat ')">/chat [message]</div>
+                        <div class="cmd-tag" onclick="clearWorkspace()">/clear</div>
+                    </div>
                 </div>
 
             </div>
@@ -407,8 +468,8 @@
 
         <div class="input-area-wrapper">
             <div class="prompt-box">
-                <input type="text" id="prompt-input" class="prompt-input" placeholder="Type a message or ask to generate an image..." autocomplete="off">
-                <button id="submit-btn" class="submit-btn" title="Send Context">
+                <input type="text" id="prompt-input" class="prompt-input" placeholder="Type a message, or use /image to generate graphics..." autocomplete="off">
+                <button id="submit-btn" class="submit-btn" title="Send Request">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
             </div>
@@ -419,10 +480,7 @@
         const IMAGE_API_BASE = "https://image.pollinations.ai/prompt";
         const TEXT_API_BASE = "https://text.pollinations.ai";
 
-        // Global Chat Memory to keep conversation contextual
-        let conversationHistory = [
-            { role: "system", content: "You are Gemini Studio, an advanced, helpful AI companion with image generation abilities. If the user asks you to modify or generate an image, reply confirming you can create it." }
-        ];
+        let conversationHistory = [];
 
         // DOM Hooks
         const promptInput = document.getElementById('prompt-input');
@@ -438,34 +496,90 @@
         const heightInput = document.getElementById('height');
         const seedInput = document.getElementById('seed');
 
-        // Check if user text explicitly implies an image request
-        function isImageIntent(text) {
-            const dynamicKeywords = ['draw', 'generate', 'create an image', 'make a picture', 'render', 'paint', 'image of', 'photo of', 'visualize'];
-            return dynamicKeywords.some(keyword => text.toLowerCase().includes(keyword));
+        // Load Session Workspace configuration settings on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('ystudio_chat_model')) chatModelSelect.value = localStorage.getItem('ystudio_chat_model');
+            if(localStorage.getItem('ystudio_img_model')) modelSelect.value = localStorage.getItem('ystudio_img_model');
+            if(localStorage.getItem('ystudio_width')) widthInput.value = localStorage.getItem('ystudio_width');
+            if(localStorage.getItem('ystudio_height')) heightInput.value = localStorage.getItem('ystudio_height');
+            if(localStorage.getItem('ystudio_seed')) seedInput.value = localStorage.getItem('ystudio_seed');
+
+            const savedHistory = localStorage.getItem('ystudio_history');
+            if (savedHistory) {
+                conversationHistory = JSON.parse(savedHistory);
+                if (conversationHistory.length > 0 && welcomeHero) {
+                    welcomeHero.remove();
+                }
+                rebuildFeedFromHistory();
+            } else {
+                resetHistoryObject();
+            }
+        });
+
+        [chatModelSelect, modelSelect, widthInput, heightInput, seedInput].forEach(element => {
+            element.addEventListener('change', () => {
+                localStorage.setItem('ystudio_chat_model', chatModelSelect.value);
+                localStorage.setItem('ystudio_img_model', modelSelect.value);
+                localStorage.setItem('ystudio_width', widthInput.value);
+                localStorage.setItem('ystudio_height', heightInput.value);
+                localStorage.setItem('ystudio_seed', seedInput.value);
+            });
+        });
+
+        function resetHistoryObject() {
+            conversationHistory = [
+                { role: "system", content: "You are Y Studio, an elite, streamlined AI terminal capable of fluid text chat and vision asset synthesis." }
+            ];
+            saveHistoryToStorage();
         }
 
-        // Main Conversational Routing Pipeline
+        function saveHistoryToStorage() {
+            localStorage.setItem('ystudio_history', JSON.stringify(conversationHistory));
+        }
+
+        function useCommand(cmd) {
+            promptInput.value = cmd;
+            promptInput.focus();
+        }
+
+        function clearWorkspace() {
+            localStorage.removeItem('ystudio_history');
+            location.reload();
+        }
+
+        function isImageIntent(text) {
+            if (text.startsWith('/image ')) return true;
+            if (text.startsWith('/chat ')) return false;
+            const keywords = ['draw', 'generate', 'create an image', 'make a picture', 'render', 'paint', 'photo of'];
+            return keywords.some(k => text.toLowerCase().includes(k));
+        }
+
         async function runConversationTurn() {
-            const userInput = promptInput.value.trim();
-            if (!userInput) return;
+            let rawInput = promptInput.value.trim();
+            if (!rawInput) return;
+
+            if (rawInput === '/clear') {
+                clearWorkspace();
+                return;
+            }
 
             if (welcomeHero) welcomeHero.remove();
 
-            // 1. Inject User Message bubble
-            appendUserMessage(userInput);
+            let processAsImage = isImageIntent(rawInput);
+            let cleanedInput = rawInput;
+            if (rawInput.startsWith('/image ')) cleanedInput = rawInput.replace('/image ', '');
+            if (rawInput.startsWith('/chat ')) cleanedInput = rawInput.replace('/chat ', '');
+
+            appendUserMessage(rawInput);
             promptInput.value = '';
             submitBtn.disabled = true;
 
-            // Determine if request handles Chat versus Art generation
-            const structuralImageRequest = isImageIntent(userInput);
-
-            // 2. Spawn response node with appropriate loading shimmers
-            const { updateContent, embedImageCard, appendError, removeLoading } = createAgentResponseStream(structuralImageRequest);
+            const { updateContent, embedImageCard, appendError, removeLoading } = createAgentResponseStream(processAsImage);
             scrollToBottom();
 
-            if (structuralImageRequest) {
-                // --- IMAGE PIPELINE ---
-                updateContent("Processing vision aesthetics and painting your request...");
+            if (processAsImage) {
+                // --- VISION PIPELINE ---
+                updateContent("Y Studio engine rendering graphic assets...");
                 
                 const width = parseInt(widthInput.value) || 1024;
                 const height = parseInt(heightInput.value) || 1024;
@@ -478,54 +592,51 @@
                 });
                 if (seed) params.append('seed', seed);
 
-                const targetImageUrl = `${IMAGE_API_BASE}/${encodeURIComponent(userInput)}?${params.toString()}`;
+                const targetImageUrl = `${IMAGE_API_BASE}/${encodeURIComponent(cleanedInput)}?${params.toString()}`;
 
                 try {
                     const response = await fetch(targetImageUrl);
-                    if (!response.ok) throw new Error("API structural failure across image lines.");
+                    if (!response.ok) throw new Error("API stream handling breakdown.");
                     const blobData = await response.blob();
-                    const locallyTrackedBlobURL = URL.createObjectURL(blobData);
-
-                    updateContent(`I've finalized your graphic using the **${model.toUpperCase()}** image engine pipeline:`);
-                    embedImageCard(locallyTrackedBlobURL, targetImageUrl, userInput);
                     
-                    // Synchronize image statement details into conversational log memory
-                    conversationHistory.push({ role: "user", content: userInput });
-                    conversationHistory.push({ role: "assistant", content: `[Generated Image for: ${userInput}]` });
+                    conversationHistory.push({ role: "user", content: rawInput });
+                    conversationHistory.push({ role: "assistant", content: `__IMAGE_BLOB__:${cleanedInput}|${targetImageUrl}` });
+                    saveHistoryToStorage();
+
+                    const localUrl = URL.createObjectURL(blobData);
+                    updateContent(`Render process completed via **${model.toUpperCase()}**:`);
+                    embedImageCard(localUrl, targetImageUrl, cleanedInput);
                 } catch (err) {
-                    appendError(`Failed rendering that graphic asset. Detail: ${err.message}`);
+                    appendError(`Render pipeline dropped asset context. Detail: ${err.message}`);
                 } finally {
                     submitBtn.disabled = false;
                     scrollToBottom();
                 }
             } else {
                 // --- TEXT CONVERSATION PIPELINE ---
-                conversationHistory.push({ role: "user", content: userInput });
+                conversationHistory.push({ role: "user", content: cleanedInput });
 
                 try {
-                    // Pull selected LLM flavor engine preference setup
-                    const chosenTextModel = chatModelSelect.value;
-                    
                     const response = await fetch(TEXT_API_BASE, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            messages: conversationHistory,
-                            model: chosenTextModel,
-                            code: "beautify" // optimizes markdown responses nicely
+                            messages: conversationHistory.filter(m => !m.content.startsWith('__IMAGE_BLOB__')),
+                            model: chatModelSelect.value,
+                            code: "beautify"
                         })
                     });
 
-                    if (!response.ok) throw new Error("Text network stream returned abnormal parameters.");
-                    const aiTextResponse = await response.text();
+                    if (!response.ok) throw new Error("Text processing pipeline anomaly.");
+                    const aiText = await response.text();
 
                     removeLoading();
-                    updateContent(aiTextResponse);
+                    updateContent(aiText);
                     
-                    // Commit to conversation memory arrays
-                    conversationHistory.push({ role: "assistant", content: aiTextResponse });
+                    conversationHistory.push({ role: "assistant", content: aiText });
+                    saveHistoryToStorage();
                 } catch (err) {
-                    appendError(`I lost tracking across my conversation thread. Detail: ${err.message}`);
+                    appendError(`Context tracking thread lost. Detail: ${err.message}`);
                 } finally {
                     submitBtn.disabled = false;
                     scrollToBottom();
@@ -533,7 +644,7 @@
             }
         }
 
-        // --- View Injection Utilities ---
+        // --- Workspace View Compilers ---
 
         function appendUserMessage(text) {
             const msgRow = document.createElement('div');
@@ -546,17 +657,13 @@
             const msgRow = document.createElement('div');
             msgRow.className = 'message model';
             
-            let loadingPlaceholderHtml = '';
-            if (isImageLoading) {
-                loadingPlaceholderHtml = `<div class="shimmer-placeholder"></div>`;
-            } else {
-                loadingPlaceholderHtml = `
-                    <div class="text-shimmer-container">
-                        <div class="text-shimmer-bar" style="width: 85%;"></div>
-                        <div class="text-shimmer-bar" style="width: 95%;"></div>
-                        <div class="text-shimmer-bar" style="width: 60%;"></div>
-                    </div>`;
-            }
+            let loadingHtml = isImageLoading ? 
+                `<div class="shimmer-placeholder"></div>` : 
+                `<div class="text-shimmer-container">
+                    <div class="text-shimmer-bar" style="width: 80%;"></div>
+                    <div class="text-shimmer-bar" style="width: 90%;"></div>
+                    <div class="text-shimmer-bar" style="width: 55%;"></div>
+                 </div>`;
 
             msgRow.innerHTML = `
                 <div class="avatar">
@@ -565,15 +672,13 @@
                     </svg>
                 </div>
                 <div class="text-content"></div>
-                ${loadingPlaceholderHtml}
+                ${loadingHtml}
             `;
             
             chatFeedInner.appendChild(msgRow);
-            
             const textContentNode = msgRow.querySelector('.text-content');
             const loaderNode = isImageLoading ? msgRow.querySelector('.shimmer-placeholder') : msgRow.querySelector('.text-shimmer-container');
 
-            // Set aspect configurations on dynamic graphical shimmer box parameters
             if (isImageLoading && loaderNode) {
                 const w = parseInt(widthInput.value) || 1024;
                 const h = parseInt(heightInput.value) || 1024;
@@ -588,22 +693,17 @@
             }
 
             return {
-                updateContent: (txt) => { textContentNode.textContent = txt; },
+                updateContent: (txt) => { textContentNode.innerHTML = marked.parse(txt); },
                 removeLoading: () => { if (loaderNode) loaderNode.remove(); },
-                embedImageCard: (blobUrl, fallbackUrl, altText) => {
+                embedImageCard: (displayUrl, sourceUrl, altText) => {
                     if (loaderNode) loaderNode.remove();
-                    
                     const card = document.createElement('div');
                     card.className = 'media-card';
                     card.innerHTML = `
-                        <img src="${blobUrl}" alt="${escapeHtml(altText)}">
+                        <img src="${displayUrl}" alt="${escapeHtml(altText)}">
                         <div class="card-actions">
-                            <a class="btn" href="${blobUrl}" download="${altText.substring(0,15).replace(/[^a-z0-9]/gi, '_')}.jpg">
-                                Download Graphic
-                            </a>
-                            <a class="btn" href="${fallbackUrl}" target="_blank">
-                                Open Source Web Link
-                            </a>
+                            <a class="btn" href="${displayUrl}" download="${altText.substring(0,12).replace(/[^a-z0-9]/gi, '_')}.jpg">Download</a>
+                            <a class="btn" href="${sourceUrl}" target="_blank">Web Link</a>
                         </div>
                     `;
                     msgRow.appendChild(card);
@@ -617,15 +717,33 @@
             };
         }
 
-        function scrollToBottom() {
-            chatFeed.scrollTop = chatFeed.scrollHeight;
+        function rebuildFeedFromHistory() {
+            conversationHistory.forEach(msg => {
+                if (msg.role === 'system') return;
+                if (msg.role === 'user') {
+                    appendUserMessage(msg.content);
+                } else if (msg.role === 'assistant') {
+                    if (msg.content.startsWith('__IMAGE_BLOB__:')) {
+                        const parsingMeta = msg.content.replace('__IMAGE_BLOB__:', '').split('|');
+                        const promptAlt = parsingMeta[0];
+                        const webSourceUrl = parsingMeta[1];
+                        
+                        const { updateContent, embedImageCard } = createAgentResponseStream(true);
+                        updateContent(`Cached image lookup for "${promptAlt}":`);
+                        embedImageCard(webSourceUrl, webSourceUrl, promptAlt);
+                    } else {
+                        const { updateContent, removeLoading } = createAgentResponseStream(false);
+                        removeLoading();
+                        updateContent(msg.content);
+                    }
+                }
+            });
+            setTimeout(scrollToBottom, 200);
         }
 
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
+        function scrollToBottom() { chatFeed.scrollTop = chatFeed.scrollHeight; }
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
-        // --- Event Listener Assignments ---
         submitBtn.addEventListener('click', runConversationTurn);
         promptInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !submitBtn.disabled) runConversationTurn();
