@@ -1,4 +1,4 @@
-# Y Studio — Chat & Vision AI 🌌
+# Aqavox — Chat & Vision AI 🌌
 
 A clean, responsive, single-file AI studio inspired by the Gemini interface. This web application provides a unified chat experience that seamlessly toggles between natural language conversation and high-fidelity image generation—**zero API keys, sign-ups, or external machine learning dependencies required.**
 
