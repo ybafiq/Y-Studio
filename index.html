@@ -126,7 +126,6 @@
             gap: 32px;
         }
 
-        /* --- Workspace Welcome Hero --- */
         .welcome-hero {
             text-align: left;
             margin-top: 10vh;
@@ -167,7 +166,6 @@
             cursor: pointer;
         }
 
-        /* --- Message Rendering Layouts --- */
         .message {
             display: flex;
             flex-direction: column;
@@ -208,7 +206,6 @@
             color: var(--y-accent);
         }
 
-        /* --- Rich text elements (Markdown Output) --- */
         .message.model .text-content {
             font-size: 15px;
             line-height: 1.6;
@@ -217,18 +214,8 @@
             width: 100%;
         }
 
-        .message.model .text-content p {
-            margin-bottom: 12px;
-        }
+        .message.model .text-content p { margin-bottom: 12px; }
 
-        .message.model .text-content h1, 
-        .message.model .text-content h2, 
-        .message.model .text-content h3 {
-            margin: 18px 0 8px 0;
-            color: #fff;
-        }
-
-        /* Markdown Table Styling fixes */
         .message.model .text-content table {
             width: 100%;
             border-collapse: collapse;
@@ -252,7 +239,6 @@
             font-weight: 500;
         }
 
-        /* --- Image Card Presentation --- */
         .media-card {
             border-radius: 12px;
             overflow: hidden;
@@ -300,7 +286,6 @@
             border-color: var(--y-accent);
         }
 
-        /* --- Loading Shimmers --- */
         .shimmer-placeholder {
             width: 350px;
             height: 350px;
@@ -333,7 +318,6 @@
             100% { background-position: -200% 0; }
         }
 
-        /* --- Input dock --- */
         .input-area-wrapper {
             padding: 0 24px 32px 24px;
             display: flex;
@@ -385,10 +369,7 @@
             flex-shrink: 0;
         }
 
-        .submit-btn:hover {
-            transform: scale(1.02);
-        }
-
+        .submit-btn:hover { transform: scale(1.02); }
         .submit-btn:disabled {
             background: #25272a;
             color: #5f6368;
@@ -399,7 +380,6 @@
 </head>
 <body>
 
-    <!-- Controls Panel -->
     <aside class="sidebar">
         <div class="logo-container">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -448,14 +428,13 @@
         </button>
     </aside>
 
-    <!-- Canvas Frame -->
     <main class="main-content">
         <div class="chat-feed" id="chat-feed">
             <div class="chat-feed-inner" id="chat-feed-inner">
                 
                 <div class="welcome-hero" id="welcome-hero">
                     <h1>Welcome to Y Studio</h1>
-                    <p>An advanced local workspace for direct conversational text-processing and automated model rendering pipelines.</p>
+                    <p>An advanced local workspace for text chat and dynamic vision pipelines. Ask to generate something or alter previous layouts sequentially!</p>
                     <div class="command-tag-list">
                         <div class="cmd-tag" onclick="useCommand('/image ')">/image [prompt]</div>
                         <div class="cmd-tag" onclick="useCommand('/chat ')">/chat [message]</div>
@@ -468,7 +447,7 @@
 
         <div class="input-area-wrapper">
             <div class="prompt-box">
-                <input type="text" id="prompt-input" class="prompt-input" placeholder="Type a message, or use /image to generate graphics..." autocomplete="off">
+                <input type="text" id="prompt-input" class="prompt-input" placeholder="Type a message or ask to tweak an image..." autocomplete="off">
                 <button id="submit-btn" class="submit-btn" title="Send Request">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
@@ -482,21 +461,18 @@
 
         let conversationHistory = [];
 
-        // DOM Hooks
         const promptInput = document.getElementById('prompt-input');
         const submitBtn = document.getElementById('submit-btn');
         const chatFeed = document.getElementById('chat-feed');
         const chatFeedInner = document.getElementById('chat-feed-inner');
         const welcomeHero = document.getElementById('welcome-hero');
         
-        // Settings State Hooks
         const chatModelSelect = document.getElementById('chat-model');
         const modelSelect = document.getElementById('model');
         const widthInput = document.getElementById('width');
         const heightInput = document.getElementById('height');
         const seedInput = document.getElementById('seed');
 
-        // Load Session Workspace configuration settings on launch
         window.addEventListener('DOMContentLoaded', () => {
             if(localStorage.getItem('ystudio_chat_model')) chatModelSelect.value = localStorage.getItem('ystudio_chat_model');
             if(localStorage.getItem('ystudio_img_model')) modelSelect.value = localStorage.getItem('ystudio_img_model');
@@ -507,28 +483,20 @@
             const savedHistory = localStorage.getItem('ystudio_history');
             if (savedHistory) {
                 conversationHistory = JSON.parse(savedHistory);
-                if (conversationHistory.length > 0 && welcomeHero) {
-                    welcomeHero.remove();
-                }
+                if (conversationHistory.length > 0 && welcomeHero) welcomeHero.remove();
                 rebuildFeedFromHistory();
             } else {
                 resetHistoryObject();
             }
         });
 
-        [chatModelSelect, modelSelect, widthInput, heightInput, seedInput].forEach(element => {
-            element.addEventListener('change', () => {
-                localStorage.setItem('ystudio_chat_model', chatModelSelect.value);
-                localStorage.setItem('ystudio_img_model', modelSelect.value);
-                localStorage.setItem('ystudio_width', widthInput.value);
-                localStorage.setItem('ystudio_height', heightInput.value);
-                localStorage.setItem('ystudio_seed', seedInput.value);
-            });
-        });
-
         function resetHistoryObject() {
             conversationHistory = [
-                { role: "system", content: "You are Y Studio, an elite, streamlined AI terminal capable of fluid text chat and vision asset synthesis." }
+                { 
+                    role: "system", 
+                    content: "You are Y Studio, a specialized assistant. You have conversational capabilities and image-generation integration. " +
+                             "CRITICAL RULE: If the user asks to modify, update, change, or adjust an image that was previously generated in the chat, you MUST rewrite the entire full image prompt to incorporate their changes. Then, respond ONLY with this bracket syntax at the end of your response text: [GENERATE_IMAGE: your newly engineered, comprehensive descriptive prompt here]. Do not forget the brackets."
+                }
             ];
             saveHistoryToStorage();
         }
@@ -547,104 +515,148 @@
             location.reload();
         }
 
-        function isImageIntent(text) {
+        function isExplicitImageCmd(text) {
             if (text.startsWith('/image ')) return true;
             if (text.startsWith('/chat ')) return false;
-            const keywords = ['draw', 'generate', 'create an image', 'make a picture', 'render', 'paint', 'photo of'];
-            return keywords.some(k => text.toLowerCase().includes(k));
+            const absoluteKeywords = ['generate an image of', 'create an image of', 'draw a picture of', 'render an image of'];
+            return absoluteKeywords.some(k => text.toLowerCase().includes(k));
+        }
+
+        async function triggerImageGeneration(promptText, renderingContainer) {
+            const width = parseInt(widthInput.value) || 1024;
+            const height = parseInt(heightInput.value) || 1024;
+            const model = modelSelect.value;
+            const seed = seedInput.value.trim();
+
+            const params = new URLSearchParams({
+                width: width, height: height, model: model,
+                nologo: 'true', private: 'true', enhance: 'false'
+            });
+            if (seed) params.append('seed', seed);
+
+            const targetImageUrl = `${IMAGE_API_BASE}/${encodeURIComponent(promptText)}?${params.toString()}`;
+
+            try {
+                const response = await fetch(targetImageUrl);
+                if (!response.ok) throw new Error("API streaming handling breakdown.");
+                const blobData = await response.blob();
+                const localUrl = URL.createObjectURL(blobData);
+
+                renderingContainer.embedImageCard(localUrl, targetImageUrl, promptText);
+                return targetImageUrl;
+            } catch (err) {
+                renderingContainer.appendError(`Render pipeline error: ${err.message}`);
+                return null;
+            }
         }
 
         async function runConversationTurn() {
             let rawInput = promptInput.value.trim();
             if (!rawInput) return;
 
-            if (rawInput === '/clear') {
-                clearWorkspace();
-                return;
-            }
-
+            if (rawInput === '/clear') { clearWorkspace(); return; }
             if (welcomeHero) welcomeHero.remove();
 
-            let processAsImage = isImageIntent(rawInput);
-            let cleanedInput = rawInput;
-            if (rawInput.startsWith('/image ')) cleanedInput = rawInput.replace('/image ', '');
-            if (rawInput.startsWith('/chat ')) cleanedInput = rawInput.replace('/chat ', '');
+            let cleanInput = rawInput;
+            if (rawInput.startsWith('/image ')) cleanInput = rawInput.replace('/image ', '');
+            if (rawInput.startsWith('/chat ')) cleanInput = rawInput.replace('/chat ', '');
 
             appendUserMessage(rawInput);
             promptInput.value = '';
             submitBtn.disabled = true;
 
-            const { updateContent, embedImageCard, appendError, removeLoading } = createAgentResponseStream(processAsImage);
+            // Step 1: Check if this is an explicit root image command
+            if (isExplicitImageCmd(rawInput)) {
+                const { updateContent, embedImageCard, appendError } = createAgentResponseStream(true);
+                scrollToBottom();
+                updateContent(`Generating fresh vision context...`);
+                
+                const imgUrl = await triggerImageGeneration(cleanInput, { embedImageCard, appendError });
+                if (imgUrl) {
+                    conversationHistory.push({ role: "user", content: rawInput });
+                    conversationHistory.push({ role: "assistant", content: `__IMAGE_BLOB__:${cleanInput}|${imgUrl}` });
+                    saveHistoryToStorage();
+                }
+                submitBtn.disabled = false;
+                scrollToBottom();
+                return;
+            }
+
+            // Step 2: Handle it through the conversational pipeline (allows adjusting previous pictures)
+            const { updateContent, removeLoading, embedImageCard, appendError } = createAgentResponseStream(false);
             scrollToBottom();
 
-            if (processAsImage) {
-                // --- VISION PIPELINE ---
-                updateContent("Y Studio engine rendering graphic assets...");
-                
-                const width = parseInt(widthInput.value) || 1024;
-                const height = parseInt(heightInput.value) || 1024;
-                const model = modelSelect.value;
-                const seed = seedInput.value.trim();
+            conversationHistory.push({ role: "user", content: cleanInput });
 
-                const params = new URLSearchParams({
-                    width: width, height: height, model: model,
-                    nologo: 'true', private: 'true', enhance: 'false'
+            try {
+                const response = await fetch(TEXT_API_BASE, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        // Parse cleanly without passing visual system metadata tags directly
+                        messages: conversationHistory.map(m => {
+                            if (m.content.startsWith('__IMAGE_BLOB__')) {
+                                const splitData = m.content.replace('__IMAGE_BLOB__:', '').split('|');
+                                return { role: "assistant", content: `[System: An image was generated previously matching this description: "${splitData[0]}"]` };
+                            }
+                            return m;
+                        }),
+                        model: chatModelSelect.value,
+                        code: "beautify"
+                    })
                 });
-                if (seed) params.append('seed', seed);
 
-                const targetImageUrl = `${IMAGE_API_BASE}/${encodeURIComponent(cleanedInput)}?${params.toString()}`;
+                if (!response.ok) throw new Error("Text processing pipeline anomaly.");
+                let aiResponseText = await response.text();
 
-                try {
-                    const response = await fetch(targetImageUrl);
-                    if (!response.ok) throw new Error("API stream handling breakdown.");
-                    const blobData = await response.blob();
+                removeLoading();
+
+                // Check if the LLM decided to execute an image alteration request
+                const triggerRegex = /\[GENERATE_IMAGE:\s*(.*?)\]/i;
+                const match = aiResponseText.match(triggerRegex);
+
+                if (match) {
+                    const parsedImagePrompt = match[1].trim();
+                    // Strip the execution code wrapper out of the final bubble text view
+                    let cleanDisplayMarkdown = aiResponseText.replace(triggerRegex, '').trim();
                     
-                    conversationHistory.push({ role: "user", content: rawInput });
-                    conversationHistory.push({ role: "assistant", content: `__IMAGE_BLOB__:${cleanedInput}|${targetImageUrl}` });
-                    saveHistoryToStorage();
-
-                    const localUrl = URL.createObjectURL(blobData);
-                    updateContent(`Render process completed via **${model.toUpperCase()}**:`);
-                    embedImageCard(localUrl, targetImageUrl, cleanedInput);
-                } catch (err) {
-                    appendError(`Render pipeline dropped asset context. Detail: ${err.message}`);
-                } finally {
-                    submitBtn.disabled = false;
+                    updateContent(cleanDisplayMarkdown || `Updating image with new adjustments...`);
+                    
+                    // Transform loader into image shimmer preview block
+                    const shimmerPlaceholder = document.createElement('div');
+                    shimmerPlaceholder.className = 'shimmer-placeholder';
+                    chatFeedInner.lastChild.appendChild(shimmerPlaceholder);
                     scrollToBottom();
-                }
-            } else {
-                // --- TEXT CONVERSATION PIPELINE ---
-                conversationHistory.push({ role: "user", content: cleanedInput });
 
-                try {
-                    const response = await fetch(TEXT_API_BASE, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            messages: conversationHistory.filter(m => !m.content.startsWith('__IMAGE_BLOB__')),
-                            model: chatModelSelect.value,
-                            code: "beautify"
-                        })
+                    const imgUrl = await triggerImageGeneration(parsedImagePrompt, { 
+                        embedImageCard: (disp, src, alt) => {
+                            shimmerPlaceholder.remove();
+                            embedImageCard(disp, src, alt);
+                        }, 
+                        appendError: (err) => {
+                            shimmerPlaceholder.remove();
+                            appendError(err);
+                        } 
                     });
 
-                    if (!response.ok) throw new Error("Text processing pipeline anomaly.");
-                    const aiText = await response.text();
-
-                    removeLoading();
-                    updateContent(aiText);
-                    
-                    conversationHistory.push({ role: "assistant", content: aiText });
-                    saveHistoryToStorage();
-                } catch (err) {
-                    appendError(`Context tracking thread lost. Detail: ${err.message}`);
-                } finally {
-                    submitBtn.disabled = false;
-                    scrollToBottom();
+                    if (imgUrl) {
+                        conversationHistory.push({ role: "assistant", content: cleanDisplayMarkdown + `\n\n__IMAGE_BLOB__:${parsedImagePrompt}|${imgUrl}` });
+                    }
+                } else {
+                    updateContent(aiResponseText);
+                    conversationHistory.push({ role: "assistant", content: aiResponseText });
                 }
+                
+                saveHistoryToStorage();
+            } catch (err) {
+                appendError(`Context tracking thread lost. Detail: ${err.message}`);
+            } finally {
+                submitBtn.disabled = false;
+                scrollToBottom();
             }
         }
 
-        // --- Workspace View Compilers ---
+        // --- View Compilers ---
 
         function appendUserMessage(text) {
             const msgRow = document.createElement('div');
@@ -679,19 +691,6 @@
             const textContentNode = msgRow.querySelector('.text-content');
             const loaderNode = isImageLoading ? msgRow.querySelector('.shimmer-placeholder') : msgRow.querySelector('.text-shimmer-container');
 
-            if (isImageLoading && loaderNode) {
-                const w = parseInt(widthInput.value) || 1024;
-                const h = parseInt(heightInput.value) || 1024;
-                if (w < h) {
-                    loaderNode.style.height = '350px';
-                    loaderNode.style.width = `${(w / h) * 350}px`;
-                } else {
-                    loaderNode.style.width = '100%';
-                    loaderNode.style.maxWidth = '450px';
-                    loaderNode.style.height = `${(h / w) * 450}px`;
-                }
-            }
-
             return {
                 updateContent: (txt) => { textContentNode.innerHTML = marked.parse(txt); },
                 removeLoading: () => { if (loaderNode) loaderNode.remove(); },
@@ -723,13 +722,24 @@
                 if (msg.role === 'user') {
                     appendUserMessage(msg.content);
                 } else if (msg.role === 'assistant') {
-                    if (msg.content.startsWith('__IMAGE_BLOB__:')) {
-                        const parsingMeta = msg.content.replace('__IMAGE_BLOB__:', '').split('|');
-                        const promptAlt = parsingMeta[0];
-                        const webSourceUrl = parsingMeta[1];
+                    // Check if the saved assistant answer contains text + image blocks
+                    const containsImage = msg.content.includes('__IMAGE_BLOB__:');
+                    
+                    if (containsImage) {
+                        const parts = msg.content.split('\n\n__IMAGE_BLOB__:');
+                        const textPart = parts[0];
+                        const imgMeta = parts[1] ? parts[1].split('|') : parts[0].replace('__IMAGE_BLOB__:', '').split('|');
                         
-                        const { updateContent, embedImageCard } = createAgentResponseStream(true);
-                        updateContent(`Cached image lookup for "${promptAlt}":`);
+                        const promptAlt = imgMeta[0];
+                        const webSourceUrl = imgMeta[1];
+
+                        const { updateContent, removeLoading, embedImageCard } = createAgentResponseStream(false);
+                        removeLoading();
+                        if(!textPart.startsWith('__IMAGE_BLOB__:')) {
+                            updateContent(textPart);
+                        } else {
+                            updateContent(`Render pipeline lookup for "${promptAlt}":`);
+                        }
                         embedImageCard(webSourceUrl, webSourceUrl, promptAlt);
                     } else {
                         const { updateContent, removeLoading } = createAgentResponseStream(false);
