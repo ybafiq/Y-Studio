@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aqavox — Advanced Chat & Vision Workspace</title>
+    <title>Aqavox - Advanced Chat & Vision Workspace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,6 +19,7 @@
             --y-gradient: linear-gradient(135deg, #00e5ff, #7b1fa2);
             --border-color: #282a2d;
             --user-msg-bg: #2a2c30;
+            --sidebar-width: 300px;
         }
 
         * {
@@ -35,18 +36,27 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* --- Sidebar --- */
+        /* --- Collapsible Sidebar & Panel Layout --- */
         .sidebar {
-            width: 300px;
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background-color: var(--panel-bg);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 24px;
-            gap: 24px;
+            gap: 20px;
             z-index: 10;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Gemini Class Selector for Hiding States */
+        body.sidebar-hidden .sidebar {
+            margin-left: calc(-1 * var(--sidebar-width));
+            transform: translateX(calc(-1 * var(--sidebar-width)));
         }
 
         .logo-container {
@@ -59,6 +69,69 @@
             background: var(--y-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            height: 40px;
+        }
+
+        .sidebar-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--bg-color);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 7px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--panel-bg);
+            color: var(--y-accent);
+        }
+
+        .panel-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        /* --- Asset Vault Container --- */
+        .vault-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .vault-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            background: #000;
+        }
+
+        .vault-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+
+        .vault-item:hover img {
+            transform: scale(1.05);
         }
 
         .setting-group {
@@ -68,9 +141,9 @@
         }
 
         .setting-group label {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-sub);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -105,12 +178,40 @@
             flex-direction: column;
             height: 100%;
             position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating Nav Header Area for Menu Control Toggle */
+        .header-nav {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 5;
+        }
+
+        .menu-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .menu-toggle-btn:hover {
+            background: var(--panel-bg);
         }
 
         .chat-feed {
             flex: 1;
             overflow-y: auto;
-            padding: 40px 24px;
+            padding: 10px 24px 40px 24px;
             display: flex;
             flex-direction: column;
             gap: 32px;
@@ -128,7 +229,7 @@
 
         .welcome-hero {
             text-align: left;
-            margin-top: 10vh;
+            margin-top: 5vh;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -221,27 +322,31 @@
 
         .message.model .text-content p { margin-bottom: 12px; }
 
-        .message.model .text-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 14px;
-            background-color: var(--panel-bg);
-            border-radius: 8px;
-            overflow: hidden;
+        .macro-tuning-row {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #111214;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            flex-wrap: wrap;
         }
 
-        .message.model .text-content th, 
-        .message.model .text-content td {
+        .tuning-pill {
+            background: #1c1e22;
             border: 1px solid var(--border-color);
-            padding: 10px 14px;
-            text-align: left;
+            color: var(--text-sub);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
 
-        .message.model .text-content th {
-            background-color: #1e2022;
+        .tuning-pill:hover {
             color: var(--y-accent);
-            font-weight: 500;
+            border-color: var(--y-accent);
+            background: rgba(0, 229, 255, 0.05);
         }
 
         .media-card {
@@ -266,7 +371,6 @@
             display: flex;
             gap: 8px;
             padding: 10px 12px;
-            border-top: 1px solid var(--border-color);
             background: #121315;
         }
 
@@ -347,7 +451,6 @@
             border-color: var(--y-accent);
         }
 
-        /* Active styling when Vision Mode is on */
         .prompt-box.vision-active {
             border-color: #9b51e0;
             background-color: #1e1b26;
@@ -415,7 +518,8 @@
 </head>
 <body>
 
-    <aside class="sidebar">
+    <!-- Navigable Collapsible Sidebar Component -->
+    <aside class="sidebar" id="app-sidebar">
         <div class="logo-container">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L14.76 8.76L21.52 11.52L14.76 14.28L12 21.04L9.24 14.28L2.48 11.52L9.24 8.76L12 2Z" fill="url(#y-studio-grad)"/>
@@ -429,34 +533,47 @@
             <span>Aqavox</span>
         </div>
 
-        <div class="setting-group">
-            <label for="chat-model">Text Model</label>
-            <select id="chat-model">
-                <option value="openai" selected>GPT-4o (Smart & Fluid)</option>
-                <option value="mistral">Mistral Large</option>
-                <option value="llama">Llama 3 (Meta Open Source)</option>
-            </select>
+        <div class="sidebar-tabs">
+            <button id="tab-config" class="tab-btn active" onclick="switchSidebarTab('config')">Settings</button>
+            <button id="tab-vault" class="tab-btn" onclick="switchSidebarTab('vault')">Asset Vault</button>
         </div>
 
-        <div class="setting-group">
-            <label for="model">Image Engine</label>
-            <select id="model">
-                <option value="flux" selected>FLUX.1 (High Fidelity)</option>
-                <option value="turbo">SDXL-Turbo (Fast Render)</option>
-            </select>
-        </div>
+        <div class="panel-content" id="sidebar-panel-container">
+            <div id="panel-config" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="setting-group">
+                    <label for="chat-model">Text Model</label>
+                    <select id="chat-model">
+                        <option value="openai" selected>GPT-4o (Smart & Fluid)</option>
+                        <option value="mistral">Mistral Large</option>
+                        <option value="llama">Llama 3 (Meta Open Source)</option>
+                    </select>
+                </div>
 
-        <div class="setting-group">
-            <label>Image Aspect Size</label>
-            <div class="dimensions-row">
-                <input type="number" id="width" value="1024" min="64" max="2048" placeholder="Width">
-                <input type="number" id="height" value="1024" min="64" max="2048" placeholder="Height">
+                <div class="setting-group">
+                    <label for="model">Image Engine</label>
+                    <select id="model">
+                        <option value="flux" selected>FLUX.1 (High Fidelity)</option>
+                        <option value="turbo">SDXL-Turbo (Fast Render)</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label>Image Aspect Size</label>
+                    <div class="dimensions-row">
+                        <input type="number" id="width" value="1024" min="64" max="2048" placeholder="Width">
+                        <input type="number" id="height" value="1024" min="64" max="2048" placeholder="Height">
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label for="seed">Image Seed</label>
+                    <input type="number" id="seed" placeholder="Random generation">
+                </div>
             </div>
-        </div>
 
-        <div class="setting-group">
-            <label for="seed">Image Seed</label>
-            <input type="number" id="seed" placeholder="Random generation">
+            <div id="panel-vault" style="display: none;">
+                <div class="vault-grid" id="vault-grid-target"></div>
+            </div>
         </div>
         
         <button class="btn" style="margin-top:auto; justify-content:center;" onclick="clearWorkspace()">
@@ -465,6 +582,17 @@
     </aside>
 
     <main class="main-content">
+        <!-- Floating Header Area containing hamburger menu toggle -->
+        <header class="header-nav">
+            <button class="menu-toggle-btn" title="Toggle Sidebar Menu" onclick="toggleSidebarState()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </header>
+
         <div class="chat-feed" id="chat-feed">
             <div class="chat-feed-inner" id="chat-feed-inner">
                 
@@ -483,10 +611,8 @@
 
         <div class="input-area-wrapper">
             <div class="prompt-box" id="input-container">
-                <!-- Gemini Style Mode Control Switch Button -->
                 <button id="mode-toggle" class="mode-toggle-btn" title="Toggle Vision/Image Mode" onclick="handleModeClick()">
                     <svg id="mode-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Chat Icon Default -->
                         <path id="chat-path" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                 </button>
@@ -503,7 +629,7 @@
         const TEXT_API_BASE = "https://text.pollinations.ai";
 
         let conversationHistory = [];
-        let isVisionModeActive = false; // Persistent toggle switch flag tracking
+        let isVisionModeActive = false;
 
         const promptInput = document.getElementById('prompt-input');
         const submitBtn = document.getElementById('submit-btn');
@@ -513,6 +639,7 @@
         
         const inputContainer = document.getElementById('input-container');
         const modeIcon = document.getElementById('mode-icon');
+        const vaultGridTarget = document.getElementById('vault-grid-target');
         
         const chatModelSelect = document.getElementById('chat-model');
         const modelSelect = document.getElementById('model');
@@ -526,17 +653,30 @@
             if(localStorage.getItem('ystudio_width')) widthInput.value = localStorage.getItem('ystudio_width');
             if(localStorage.getItem('ystudio_height')) heightInput.value = localStorage.getItem('ystudio_height');
             if(localStorage.getItem('ystudio_seed')) seedInput.value = localStorage.getItem('ystudio_seed');
+            
+            // Restore structural visibility preference tracking
+            if(localStorage.getItem('ystudio_sidebar_hidden') === 'true') {
+                document.body.classList.add('sidebar-hidden');
+            }
 
             const savedHistory = localStorage.getItem('ystudio_history');
             if (savedHistory) {
                 conversationHistory = JSON.parse(savedHistory);
                 if (conversationHistory.length > 0 && welcomeHero) welcomeHero.remove();
                 rebuildFeedFromHistory();
+                updateVaultGrid();
             } else {
                 resetHistoryObject();
             }
-            toggleVisionMode(false); // Default to chat interaction UI
+            toggleVisionMode(false);
         });
+
+        // Toggle Gemini style Sidebar View State 
+        function toggleSidebarState() {
+            const isHiddenNow = document.body.classList.toggle('sidebar-hidden');
+            localStorage.setItem('ystudio_sidebar_hidden', isHiddenNow);
+            setTimeout(scrollToBottom, 100); // adjust feed positions smoothly layout shift finishes
+        }
 
         function resetHistoryObject() {
             conversationHistory = [
@@ -551,9 +691,48 @@
 
         function saveHistoryToStorage() {
             localStorage.setItem('ystudio_history', JSON.stringify(conversationHistory));
+            updateVaultGrid();
         }
 
-        // Handle structural toggle click changes
+        function switchSidebarTab(targetTab) {
+            document.getElementById('tab-config').classList.toggle('active', targetTab === 'config');
+            document.getElementById('tab-vault').classList.toggle('active', targetTab === 'vault');
+            
+            document.getElementById('panel-config').style.display = targetTab === 'config' ? 'flex' : 'none';
+            document.getElementById('panel-vault').style.display = targetTab === 'vault' ? 'block' : 'none';
+        }
+
+        function updateVaultGrid() {
+            vaultGridTarget.innerHTML = '';
+            conversationHistory.forEach(m => {
+                if (m.role === 'assistant' && m.content.includes('__IMAGE_BLOB__')) {
+                    const parts = m.content.split('__IMAGE_BLOB__:');
+                    const imgMeta = parts[1] ? parts[1].split('|') : parts[0].replace('__IMAGE_BLOB__:', '').split('|');
+                    const promptText = imgMeta[0];
+                    const sourceUrl = imgMeta[1];
+
+                    if(sourceUrl) {
+                        const item = document.createElement('div');
+                        item.className = 'vault-item';
+                        item.title = promptText;
+                        item.innerHTML = `<img src="${sourceUrl}" alt="Vault Graphic Asset">`;
+                        item.onclick = () => {
+                            toggleVisionMode(false);
+                            promptInput.value = `Regarding your previous creation "${promptText}", let's modify it by `;
+                            promptInput.focus();
+                        };
+                        vaultGridTarget.appendChild(item);
+                    }
+                }
+            });
+        }
+
+        function applyTuningModifier(pillElement, basePrompt, adjustmentKeyword) {
+            toggleVisionMode(false);
+            promptInput.value = `Update the image of "${basePrompt}" to make it look like a ${adjustmentKeyword}`;
+            runConversationTurn();
+        }
+
         function handleModeClick() {
             toggleVisionMode(!isVisionModeActive);
         }
@@ -563,12 +742,10 @@
             if (isVisionModeActive) {
                 inputContainer.classList.add('vision-active');
                 promptInput.placeholder = "Describe the image you want to create...";
-                // Mutate inner SVG path to render an image/gallery node configuration icon
                 modeIcon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline>`;
             } else {
                 inputContainer.classList.remove('vision-active');
                 promptInput.placeholder = "Type a message or ask to tweak an image...";
-                // Revert icon layout back to standard conversation chat outline bubble
                 modeIcon.innerHTML = `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>`;
             }
             promptInput.focus();
@@ -576,6 +753,7 @@
 
         function clearWorkspace() {
             localStorage.removeItem('ystudio_history');
+            localStorage.removeItem('ystudio_sidebar_hidden');
             location.reload();
         }
 
@@ -617,9 +795,7 @@
             promptInput.value = '';
             submitBtn.disabled = true;
 
-            // Route execution paths directly based on button state toggle flag settings
             if (isVisionModeActive) {
-                // --- PURE DEDICATED IMAGE MODE PIPELINE ---
                 const { updateContent, embedImageCard, appendError } = createAgentResponseStream(true);
                 scrollToBottom();
                 updateContent(`Rendering vision target request...`);
@@ -631,14 +807,12 @@
                     saveHistoryToStorage();
                 }
                 
-                // Automatically switch back to text chat mode after rendering finishes up, like Gemini
                 toggleVisionMode(false);
                 submitBtn.disabled = false;
                 scrollToBottom();
                 return;
             }
 
-            // --- CONVERSATIONAL TEXT CHAT MODE PIPELINE ---
             const { updateContent, removeLoading, embedImageCard, appendError } = createAgentResponseStream(false);
             scrollToBottom();
 
@@ -666,7 +840,6 @@
 
                 removeLoading();
 
-                // Intercept bracket syntax rules from structural updates
                 const triggerRegex = /\[GENERATE_IMAGE:\s*(.*?)\]/i;
                 const match = aiResponseText.match(triggerRegex);
 
@@ -751,11 +924,19 @@
                     if (loaderNode) loaderNode.remove();
                     const card = document.createElement('div');
                     card.className = 'media-card';
+                    
+                    const sanitizedAlt = escapeHtml(altText);
                     card.innerHTML = `
-                        <img src="${displayUrl}" alt="${escapeHtml(altText)}">
+                        <img src="${displayUrl}" alt="${sanitizedAlt}">
                         <div class="card-actions">
-                            <a class="btn" href="${displayUrl}" download="${altText.substring(0,12).replace(/[^a-z0-9]/gi, '_')}.jpg">Download</a>
+                            <a class="btn" href="${displayUrl}" download="${sanitizedAlt.substring(0,12).replace(/[^a-z0-9]/gi, '_')}.jpg">Download</a>
                             <a class="btn" href="${sourceUrl}" target="_blank">Web Link</a>
+                        </div>
+                        <div class="macro-tuning-row">
+                            <div class="tuning-pill" onclick="applyTuningModifier(this, '${sanitizedAlt.replace(/'/g, "\\'")}', 'photorealistic photography 8k resolution cinematic lighting')">📷 Photorealistic</div>
+                            <div class="tuning-pill" onclick="applyTuningModifier(this, '${sanitizedAlt.replace(/'/g, "\\'")}', 'detailed anime illustration vector art style')">🎨 Anime Style</div>
+                            <div class="tuning-pill" onclick="applyTuningModifier(this, '${sanitizedAlt.replace(/'/g, "\\'")}', 'cyberpunk neon glowing color palette aesthetic')">🌆 Cyberpunk</div>
+                            <div class="tuning-pill" onclick="applyTuningModifier(this, '${sanitizedAlt.replace(/'/g, "\\'")}', 'pencil sketch hand drawn monochrome fine lines art')">✏️ Sketch</div>
                         </div>
                     `;
                     msgRow.appendChild(card);
@@ -770,6 +951,7 @@
         }
 
         function rebuildFeedFromHistory() {
+            chatFeedInner.innerHTML = '';
             conversationHistory.forEach(msg => {
                 if (msg.role === 'system') return;
                 if (msg.role === 'user') {
