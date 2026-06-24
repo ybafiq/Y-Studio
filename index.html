@@ -315,6 +315,7 @@
             color: var(--y-accent);
         }
 
+        /* --- Enhanced Structural Content Styles for Tables & Text Layouts --- */
         .message.model .text-content {
             font-size: 15px;
             line-height: 1.6;
@@ -325,6 +326,35 @@
         }
 
         .message.model .text-content p { margin-bottom: 12px; }
+
+        .message.model .text-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 14px;
+            background-color: #111214;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .message.model .text-content th,
+        .message.model .text-content td {
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .message.model .text-content th {
+            background-color: #1e2022;
+            color: var(--y-accent);
+            font-weight: 700;
+        }
+
+        .message.model .text-content tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
 
         .macro-tuning-row {
             display: flex;
@@ -497,7 +527,7 @@
             padding: 10px 4px;
             height: 44px;
             font-family: inherit;
-            min-width: 0; /* Prevents input box from stretching flex elements horizontally */
+            min-width: 0;
         }
 
         .submit-btn {
@@ -523,7 +553,6 @@
             transform: none;
         }
 
-        /* --- 📱 RESPONSIVE MEDIA QUERIES --- */
         @media (max-width: 768px) {
             .sidebar {
                 position: absolute;
@@ -534,13 +563,11 @@
                 transform: translateX(0);
             }
             
-            /* Hidden state shifts it completely out of view to the left */
             body.sidebar-hidden .sidebar {
                 margin-left: 0;
                 transform: translateX(calc(-1 * var(--sidebar-width)));
             }
 
-            /* Dark Overlay Blur Backdrop when Sidebar is Open on Mobile */
             body:not(.sidebar-hidden)::after {
                 content: '';
                 position: absolute;
@@ -553,7 +580,8 @@
         }
     </style>
 </head>
-<body class="sidebar-hidden"> <aside class="sidebar" id="app-sidebar">
+<body class="sidebar-hidden">
+    <aside class="sidebar" id="app-sidebar">
         <div class="logo-container">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L14.76 8.76L21.52 11.52L14.76 14.28L12 21.04L9.24 14.28L2.48 11.52L9.24 8.76L12 2Z" fill="url(#y-studio-grad)"/>
@@ -630,7 +658,6 @@
 
         <div class="chat-feed" id="chat-feed">
             <div class="chat-feed-inner" id="chat-feed-inner">
-                
                 <div class="welcome-hero" id="welcome-hero">
                     <h1>Welcome to Aqavox</h1>
                     <p>An advanced workspace for continuous text processing and image architecture. Toggle the image icon to generate graphic assets directly.</p>
@@ -640,7 +667,6 @@
                         <div class="cmd-tag" onclick="clearWorkspace()">Reset View</div>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -689,7 +715,6 @@
             if(localStorage.getItem('ystudio_height')) heightInput.value = localStorage.getItem('ystudio_height');
             if(localStorage.getItem('ystudio_seed')) seedInput.value = localStorage.getItem('ystudio_seed');
             
-            // Set initial state based on window widths dynamically
             if (window.innerWidth > 768) {
                 if(localStorage.getItem('ystudio_sidebar_hidden') === 'true') {
                     document.body.classList.add('sidebar-hidden');
@@ -697,7 +722,7 @@
                     document.body.classList.remove('sidebar-hidden');
                 }
             } else {
-                document.body.classList.add('sidebar-hidden'); // Force clean baseline layout on mobile
+                document.body.classList.add('sidebar-hidden');
             }
 
             const savedHistory = localStorage.getItem('ystudio_history');
@@ -719,7 +744,6 @@
             setTimeout(scrollToBottom, 100);
         }
 
-        // Close sidebar automatically on mobile when clicking on the main content backdrop space
         function handleOutsideContentClick(e) {
             if (window.innerWidth <= 768 && !document.body.classList.contains('sidebar-hidden')) {
                 document.body.classList.add('sidebar-hidden');
@@ -768,8 +792,6 @@
                         item.onclick = () => {
                             toggleVisionMode(false);
                             promptInput.value = `Regarding your previous creation "${promptText}", let's modify it by `;
-                            
-                            // Auto hide drawer overlay once vault selection occurs on narrow viewports
                             if (window.innerWidth <= 768) {
                                 document.body.classList.add('sidebar-hidden');
                             }
@@ -935,8 +957,6 @@
                 scrollToBottom();
             }
         }
-
-        // --- View Compilers ---
 
         function appendUserMessage(text) {
             const msgRow = document.createElement('div');
