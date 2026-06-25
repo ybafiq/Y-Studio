@@ -48,7 +48,7 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            padding: 24px;
+            padding: 24px 16px;
             gap: 20px;
             z-index: 100; /* Higher priority layer to overlay properly on mobile */
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,6 +70,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             height: 40px;
+            padding-left: 8px;
         }
 
         .sidebar-tabs {
@@ -104,6 +105,69 @@
             flex-direction: column;
             gap: 20px;
             overflow-y: auto;
+            padding: 0 4px;
+        }
+
+        /* --- Recent Conversations List Framework --- */
+        .history-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .history-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-left: 8px;
+            margin-bottom: 4px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-main);
+            transition: background 0.2s;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .history-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--y-accent);
+            font-weight: 500;
+        }
+
+        .history-item svg {
+            flex-shrink: 0;
+            color: var(--text-sub);
+        }
+        
+        .history-item.active svg {
+            color: var(--y-accent);
         }
 
         /* --- Asset Vault Container --- */
@@ -596,6 +660,10 @@
             <span>Aqavox</span>
         </div>
 
+        <button class="btn" style="justify-content:center; background: var(--bg-color); border-color: rgba(0,229,255,0.3); color: var(--y-accent); font-weight:700;" onclick="startNewChat()">
+            + New Chat
+        </button>
+
         <div class="sidebar-tabs">
             <button id="tab-config" class="tab-btn active" onclick="switchSidebarTab('config')">Settings</button>
             <button id="tab-vault" class="tab-btn" onclick="switchSidebarTab('vault')">Asset Vault</button>
@@ -634,6 +702,12 @@
                     <label for="seed">Image Seed</label>
                     <input type="number" id="seed" placeholder="Random generation">
                 </div>
+
+                <div class="history-section">
+                    <div class="history-label">Recent Chats</div>
+                    <div class="history-list" id="history-list-target">
+                        </div>
+                </div>
             </div>
 
             <div id="panel-vault" style="display: none;">
@@ -641,8 +715,8 @@
             </div>
         </div>
         
-        <button class="btn" style="margin-top:auto; justify-content:center;" onclick="clearWorkspace()">
-            Reset Workspace
+        <button class="btn" style="margin-top:auto; justify-content:center; opacity: 0.6; font-size:11px;" onclick="clearAllDataCache()">
+            Clear All Data Cache
         </button>
     </aside>
 
@@ -665,7 +739,6 @@
                     <div class="command-tag-list">
                         <div class="cmd-tag" onclick="toggleVisionMode(true)">Switch to Image Mode</div>
                         <div class="cmd-tag" onclick="toggleVisionMode(false)">Switch to Chat Mode</div>
-                        <div class="cmd-tag" onclick="clearWorkspace()">Reset View</div>
                     </div>
                 </div>
             </div>
@@ -691,6 +764,8 @@
         const TEXT_API_BASE = "https://text.pollinations.ai";
 
         let conversationHistory = [];
+        let savedSessions = {}; 
+        let currentSessionId = null;
         let isVisionModeActive = false;
 
         const promptInput = document.getElementById('prompt-input');
@@ -698,6 +773,7 @@
         const chatFeed = document.getElementById('chat-feed');
         const chatFeedInner = document.getElementById('chat-feed-inner');
         const welcomeHero = document.getElementById('welcome-hero');
+        const historyListTarget = document.getElementById('history-list-target');
         
         const inputContainer = document.getElementById('input-container');
         const modeIcon = document.getElementById('mode-icon');
@@ -726,15 +802,36 @@
                 document.body.classList.add('sidebar-hidden');
             }
 
-            const savedHistory = localStorage.getItem('ystudio_history');
-            if (savedHistory) {
-                conversationHistory = JSON.parse(savedHistory);
-                if (conversationHistory.length > 0 && welcomeHero) welcomeHero.remove();
-                rebuildFeedFromHistory();
-                updateVaultGrid();
-            } else {
-                resetHistoryObject();
+            // Sync structural preference fields
+            [chatModelSelect, modelSelect, widthInput, heightInput, seedInput].forEach(elem => {
+                elem.addEventListener('change', () => {
+                    localStorage.setItem('ystudio_chat_model', chatModelSelect.value);
+                    localStorage.setItem('ystudio_img_model', modelSelect.value);
+                    localStorage.setItem('ystudio_width', widthInput.value);
+                    localStorage.setItem('ystudio_height', heightInput.value);
+                    localStorage.setItem('ystudio_seed', seedInput.value);
+                });
+            });
+
+            // Hydrate historical parameters
+            const storedSessions = localStorage.getItem('aqavox_sessions');
+            const storedActiveId = localStorage.getItem('aqavox_active_session_id');
+
+            if (storedSessions) {
+                savedSessions = JSON.parse(storedSessions);
             }
+
+            if (storedActiveId && savedSessions[storedActiveId]) {
+                currentSessionId = storedActiveId;
+                conversationHistory = savedSessions[currentSessionId];
+                if (conversationHistory.length > 1 && welcomeHero) welcomeHero.remove();
+                rebuildFeedFromHistory();
+            } else {
+                createNewChatSession();
+            }
+
+            renderHistorySidebarList();
+            updateVaultGrid();
             toggleVisionMode(false);
         });
 
@@ -752,7 +849,8 @@
             }
         }
 
-        function resetHistoryObject() {
+        function createNewChatSession() {
+            currentSessionId = "session_" + Date.now();
             conversationHistory = [
                 { 
                     role: "system", 
@@ -760,12 +858,61 @@
                              "If the user discusses, modifies, or tweaks an image that was previously output inline, you must adaptively engineer a full comprehensive description reflecting their requested adjustments. Then, append exactly this instruction string format at the very end of your response text block: [GENERATE_IMAGE: your descriptive prompt here]."
                 }
             ];
+            savedSessions[currentSessionId] = conversationHistory;
+            localStorage.setItem('aqavox_active_session_id', currentSessionId);
             saveHistoryToStorage();
         }
 
-        function saveHistoryToStorage() {
-            localStorage.setItem('ystudio_history', JSON.stringify(conversationHistory));
+        function startNewChat() {
+            createNewChatSession();
+            chatFeedInner.innerHTML = '';
+            chatFeedInner.appendChild(welcomeHero);
+            renderHistorySidebarList();
             updateVaultGrid();
+            if (window.innerWidth <= 768) document.body.classList.add('sidebar-hidden');
+        }
+
+        function loadSavedChatSession(sessionId) {
+            if (!savedSessions[sessionId]) return;
+            currentSessionId = sessionId;
+            conversationHistory = savedSessions[sessionId];
+            localStorage.setItem('aqavox_active_session_id', currentSessionId);
+            
+            if (welcomeHero) welcomeHero.remove();
+            rebuildFeedFromHistory();
+            renderHistorySidebarList();
+            updateVaultGrid();
+            if (window.innerWidth <= 768) document.body.classList.add('sidebar-hidden');
+        }
+
+        function saveHistoryToStorage() {
+            savedSessions[currentSessionId] = conversationHistory;
+            localStorage.setItem('aqavox_sessions', JSON.stringify(savedSessions));
+            updateVaultGrid();
+        }
+
+        function renderHistorySidebarList() {
+            historyListTarget.innerHTML = '';
+            const sortedIds = Object.keys(savedSessions).sort((a, b) => b.split('_')[1] - a.split('_')[1]);
+            
+            sortedIds.forEach(id => {
+                const historyData = savedSessions[id];
+                const userFirstMsg = historyData.find(m => m.role === 'user');
+                if (!userFirstMsg) return; 
+
+                let summaryTitle = userFirstMsg.content;
+                if (summaryTitle.startsWith('[Image Request]: ')) summaryTitle = summaryTitle.replace('[Image Request]: ', '🎨 ');
+                if (summaryTitle.length > 24) summaryTitle = summaryTitle.substring(0, 22) + '...';
+
+                const item = document.createElement('div');
+                item.className = `history-item ${id === currentSessionId ? 'active' : ''}`;
+                item.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>${escapeHtml(summaryTitle)}</span>
+                `;
+                item.onclick = () => loadSavedChatSession(id);
+                historyListTarget.appendChild(item);
+            });
         }
 
         function switchSidebarTab(targetTab) {
@@ -778,29 +925,29 @@
 
         function updateVaultGrid() {
             vaultGridTarget.innerHTML = '';
-            conversationHistory.forEach(m => {
-                if (m.role === 'assistant' && m.content.includes('__IMAGE_BLOB__')) {
-                    const parts = m.content.split('__IMAGE_BLOB__:');
-                    const imgMeta = parts[1] ? parts[1].split('|') : parts[0].replace('__IMAGE_BLOB__:', '').split('|');
-                    const promptText = imgMeta[0];
-                    const sourceUrl = imgMeta[1];
+            Object.values(savedSessions).forEach(sessionData => {
+                sessionData.forEach(m => {
+                    if (m.role === 'assistant' && m.content.includes('__IMAGE_BLOB__')) {
+                        const parts = m.content.split('__IMAGE_BLOB__:');
+                        const imgMeta = parts[1] ? parts[1].split('|') : parts[0].replace('__IMAGE_BLOB__:', '').split('|');
+                        const promptText = imgMeta[0];
+                        const sourceUrl = imgMeta[1];
 
-                    if(sourceUrl) {
-                        const item = document.createElement('div');
-                        item.className = 'vault-item';
-                        item.title = promptText;
-                        item.innerHTML = `<img src="${sourceUrl}" alt="Vault Graphic Asset">`;
-                        item.onclick = () => {
-                            toggleVisionMode(false);
-                            promptInput.value = `Regarding your previous creation "${promptText}", let's modify it by `;
-                            if (window.innerWidth <= 768) {
-                                document.body.classList.add('sidebar-hidden');
-                            }
-                            promptInput.focus();
-                        };
-                        vaultGridTarget.appendChild(item);
+                        if(sourceUrl) {
+                            const item = document.createElement('div');
+                            item.className = 'vault-item';
+                            item.title = promptText;
+                            item.innerHTML = `<img src="${sourceUrl}" alt="Vault Graphic Asset">`;
+                            item.onclick = () => {
+                                toggleVisionMode(false);
+                                promptInput.value = `Regarding your previous creation "${promptText}", let's modify it by `;
+                                if (window.innerWidth <= 768) document.body.classList.add('sidebar-hidden');
+                                promptInput.focus();
+                            };
+                            vaultGridTarget.appendChild(item);
+                        }
                     }
-                }
+                });
             });
         }
 
@@ -828,9 +975,8 @@
             promptInput.focus();
         }
 
-        function clearWorkspace() {
-            localStorage.removeItem('ystudio_history');
-            localStorage.removeItem('ystudio_sidebar_hidden');
+        function clearAllDataCache() {
+            localStorage.clear();
             location.reload();
         }
 
@@ -866,6 +1012,7 @@
             let rawInput = promptInput.value.trim();
             if (!rawInput) return;
 
+            const isInitialMessage = (conversationHistory.length === 1);
             if (welcomeHero) welcomeHero.remove();
 
             appendUserMessage(rawInput);
@@ -882,6 +1029,7 @@
                     conversationHistory.push({ role: "user", content: `[Image Request]: ${rawInput}` });
                     conversationHistory.push({ role: "assistant", content: `__IMAGE_BLOB__:${rawInput}|${imgUrl}` });
                     saveHistoryToStorage();
+                    renderHistorySidebarList();
                 }
                 
                 toggleVisionMode(false);
@@ -894,6 +1042,7 @@
             scrollToBottom();
 
             conversationHistory.push({ role: "user", content: rawInput });
+            if (isInitialMessage) renderHistorySidebarList(); 
 
             try {
                 const response = await fetch(TEXT_API_BASE, {
