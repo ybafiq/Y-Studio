@@ -66,11 +66,35 @@
             font-size: 22px;
             font-weight: 700;
             letter-spacing: -0.5px;
+            height: 40px;
+            padding-left: 8px;
+        }
+
+        .logo-container .logo-text {
             background: var(--y-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            height: 40px;
-            padding-left: 8px;
+        }
+
+        .sidebar-close-btn {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .sidebar-close-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
         }
 
         .sidebar-tabs {
@@ -253,8 +277,9 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            z-index: 5;
+            z-index: 101;
             background-color: var(--bg-color);
+            position: relative;
         }
 
         .menu-toggle-btn {
@@ -799,7 +824,14 @@
                     </linearGradient>
                 </defs>
             </svg>
-            <span>Aqavox</span>
+            <span class="logo-text">Aqavox</span>
+            <button class="sidebar-close-btn" title="Hide Sidebar" onclick="toggleSidebarState(event)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
         </div>
 
         <button class="btn" style="justify-content:center; background: var(--bg-color); border-color: rgba(0,229,255,0.3); color: var(--y-accent); font-weight:700;" onclick="startNewChat()">
